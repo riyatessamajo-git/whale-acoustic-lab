@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
+  <title>Whale Acoustic Lab | Computational Analysis of Whale Vocalizations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-hover: #eff6ff;
+
+      --blue-50:  #eff6ff;
+      --blue-100: #dbeafe;
+      --blue-200: #bfdbfe;
+      --blue-500: #3b82f6;
+      --blue-600: #2563eb;
+      --blue-700: #1d4ed8;
+      --blue-800: #1e40af;
+      --blue-900: #1e3a8a;
+
+      --border: #e2e8f0;
+      --border-blue: #bfdbfe;
+      --border-focus: #3b82f6;
+
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #64748b;
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 4px 16px -2px rgba(37, 99, 235, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      --shadow-hover: 0 10px 24px -4px rgba(37, 99, 235, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 50% -20%, rgba(219, 234, 254, 0.6) 0%, transparent 65%),
+        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    /* ── Top Navigation Bar ── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--blue-600);
+      color: #ffffff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--blue-900);
+    }
+
+    .brand-text p {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Primary Nav Modes */
+    .nav-modes {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 4px 8px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mode-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-dim);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .mode-btn.active {
+      background: var(--blue-50);
+      color: var(--blue-700);
+      font-weight: 600;
+      border-color: var(--border-blue);
+    }
+
+    /* ── Multi-Page Views ── */
+    .view-panel {
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .view-panel.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      max-width: 720px;
+      margin: 12px auto 28px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blue-50);
+      border: 1px solid var(--border-blue);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--blue-700);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+
+    .hero h2 {
+      font-size: clamp(24px, 3.8vw, 34px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── Upload Area ── */
+    .card-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 24px;
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border-blue);
+      background: var(--blue-50);
+      border-radius: var(--radius-md);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--blue-600);
+      background: #e0f2fe;
+      transform: translateY(-1px);
+    }
+
+    .dropzone-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: var(--blue-600);
+      border: 1px solid var(--border-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.08);
+    }
+
+    .dropzone-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .dropzone h3 {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--blue-900);
+    }
+
+    .dropzone p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .format-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    /* Selected audio box */
+    .selected-box {
+      display: none;
+      margin-top: 18px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .selected-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .file-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      word-break: break-all;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn-change-file {
+      font-size: 12px;
+      color: var(--blue-600);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .btn-change-file:hover {
+      background: var(--blue-50);
+      text-decoration: underline;
+    }
+
+    audio {
+      width: 100%;
+      height: 38px;
+      outline: none;
+      border-radius: 6px;
+    }
+
+    /* Action CTA */
+    .cta-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 360px;
+      padding: 14px 28px;
+      background: var(--blue-600);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+      font-family: inherit;
+      min-height: 48px;
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-700);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary.loading {
+      opacity: 0.8;
+      cursor: wait;
+      pointer-events: none;
+    }
+
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-sample-link {
+      background: none;
+      border: none;
+      color: var(--blue-600);
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-sample-link:hover {
+      background: var(--blue-50);
+      text-decoration: underline;
+    }
+
+    .error-box {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto 16px;
+      text-align: center;
+    }
+
+    /* ── RESULTS PAGE ── */
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      min-height: 38px;
+    }
+
+    .btn-secondary:hover {
+      background: var(--blue-50);
+      border-color: var(--border-blue);
+      color: var(--blue-700);
+    }
+
+    .report-badge-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-file {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--blue-50);
+      color: var(--blue-800);
+      border: 1px solid var(--border-blue);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .export-btns {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-export:hover {
+      border-color: var(--border-blue);
+      color: var(--blue-700);
+      background: var(--blue-50);
+    }
+
+    /* Audio Playback Bar */
+    .player-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .player-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--blue-900);
+    }
+
+    .player-widget {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    /* Metrics Grid */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metric-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+
+    .metric-icon-wrap {
+      color: var(--blue-600);
+    }
+
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .metric-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--blue-900);
+      letter-spacing: -0.02em;
+    }
+
+    .metric-unit {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+    }
+
+    /* Interactive Spectrogram & Toolbar */
+    .interactive-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .stft-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .control-item select, .control-item input {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      outline: none;
+    }
+
+    .control-item select:focus, .control-item input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .control-item input[type="number"] {
+      width: 70px;
+    }
+
+    .btn-apply-stft {
+      background: var(--blue-600);
+      color: #ffffff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-apply-stft:hover {
+      background: var(--blue-700);
+    }
+
+    .btn-reset-zoom {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn-reset-zoom:hover {
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+
+    /* Live Frequency/Time Inspection Badge */
+    .inspector-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--border-blue);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--blue-900);
+    }
+
+    /* Plot Card Containers */
+    .plot-container {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .plot-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Vocalization Event Detection Table */
+    .events-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      max-height: 280px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--blue-900);
+      font-weight: 600;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    tr:hover td {
+      background: var(--blue-50);
+    }
+
+    .btn-inspect-row {
+      background: none;
+      border: 1px solid var(--border-blue);
+      color: var(--blue-600);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-inspect-row:hover {
+      background: var(--blue-600);
+      color: #ffffff;
+    }
+
+    /* Coda Analysis Section */
+    .coda-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .coda-summary-bar {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .coda-stat-pill {
+      background: var(--blue-50);
+      border: 1px solid var(--border-blue);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--blue-900);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .coda-stat-pill strong {
+      font-size: 15px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Click Timeline Visualization Bar */
+    .timeline-wrapper {
+      margin-bottom: 16px;
+    }
+
+    .timeline-label {
+      font-size: 11.5px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .timeline-bar {
+      position: relative;
+      height: 28px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .click-tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--blue-600);
+      opacity: 0.8;
+    }
+
+    .click-tick:hover {
+      background: #ef4444;
+      width: 3px;
+      z-index: 2;
+    }
+
+    /* Scientific Disclaimers */
+    .disclaimer-card {
+      background: #f8fafc;
+      border: 1px solid var(--border-blue);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .disclaimer-card h4 {
+      font-size: 12.5px;
+      color: var(--blue-900);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    /* ── COMPARISON MODE ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .compare-side {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .compare-side h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--blue-900);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .delta-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 24px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .delta-table th, .delta-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .delta-table th {
+      background: #f8fafc;
+      color: var(--blue-900);
+    }
+
+    .delta-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    .delta-val.pos { color: #0284c7; }
+    .delta-val.neg { color: #d97706; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      margin-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .compare-grid {
+        grid-template-columns: 1fr;
+      }
+      .stft-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 0 12px 40px;
+      }
+      .navbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .nav-modes {
+        justify-content: center;
+      }
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .metric-card {
+        padding: 10px 12px;
+      }
+      .metric-num {
+        font-size: 16px;
+      }
+      .top-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .export-btns {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── TOP NAVBAR ── -->
+  <header class="navbar">
+    <div class="brand" onclick="switchNavMode('single')">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12h2.5L7 4l4 16 3-10 2.5 5h3"></path>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Whale Acoustic Lab</h1>
+        <p>Computational Analysis of Whale Vocalizations</p>
+      </div>
+    </div>
+
+    <!-- Mode Selector Navigation -->
+    <div class="nav-modes">
+      <button class="mode-btn active" id="btnModeSingle" onclick="switchNavMode('single')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        <span>Acoustic Analysis</span>
+      </button>
+      <button class="mode-btn" id="btnModeCompare" onclick="switchNavMode('compare')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="18" rx="2"></rect><rect x="13" y="3" width="9" height="18" rx="2"></rect></svg>
+        <span>Compare Recordings</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- VIEW 1: SINGLE RECORDING ANALYSIS                       -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <div id="view-single">
+
+    <!-- SUB-VIEW A: Upload Stage -->
+    <div id="subview-upload" class="view-panel active">
+      <div class="hero">
+        <div class="hero-badge">Bioacoustic Signal Processing</div>
+        <h2>Computational Analysis of Whale Vocalizations</h2>
+        <p>
+          Extract temporal waveforms, configurable STFT spectrograms, impulse event boundaries,
+          and candidate coda sequences from marine hydrophone recordings.
+        </p>
+      </div>
+
+      <div class="error-box" id="errorBanner"></div>
+
+      <!-- Upload Card -->
+      <div class="card-box" style="max-width: 680px; margin: 0 auto 28px;">
+        <div class="dropzone" id="dropzone" onclick="triggerFileInput()">
+          <div class="dropzone-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <div>
+            <h3>Select a vocalization recording</h3>
+            <p>Drag and drop audio file, or click to browse</p>
+          </div>
+          <div class="format-pills">
+            <span class="pill">WAV</span>
+            <span class="pill">OGG</span>
+            <span class="pill">MP3</span>
+            <span class="pill">FLAC</span>
+          </div>
+          <input type="file" id="fileInput" class="file-input" accept=".wav,.ogg,.mp3,.flac,.aiff" onchange="handleFileChange(event)"/>
+        </div>
+
+        <!-- Selected Audio Details & Preview Player -->
+        <div class="selected-box" id="selectedBox">
+          <div class="selected-header">
+            <div class="file-meta">
+              <span class="file-name" id="selectedFileName">—</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="file-size" id="selectedFileSize">—</span>
+              <button class="btn-change-file" onclick="triggerFileInput()">Change File</button>
+            </div>
+          </div>
+          <audio id="audioPreview" controls preload="metadata"></audio>
+        </div>
+      </div>
+
+      <!-- Run Action -->
+      <div class="cta-area">
+        <button class="btn-primary" id="btnRun" onclick="runAnalysis()">
+          <span class="spinner" id="spinner"></span>
+          <span id="btnText">Run Acoustic Analysis</span>
+        </button>
+
+        <button class="btn-sample-link" onclick="loadSampleAudio()">
+          Or analyze sample recording (Sperm Whale Echolocation Clicks)
+        </button>
+      </div>
+    </div>
+
+    <!-- SUB-VIEW B: Results & Interactive Research Report -->
+    <div id="subview-results" class="view-panel">
+
+      <!-- Action & Export Bar -->
+      <div class="top-actions">
+        <button class="btn-secondary" onclick="backToUpload()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <span>Upload Another File</span>
+        </button>
+
+        <div class="report-badge-group">
+          <span class="badge-file" id="reportFileName">audio.wav</span>
+          <span style="font-size: 12px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;" id="reportDate">—</span>
+        </div>
+
+        <div class="export-btns">
+          <button class="btn-export" onclick="exportPDF()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>Research PDF</span>
+          </button>
+          <button class="btn-export" onclick="exportCSV()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>CSV Data</span>
+          </button>
+          <button class="btn-export" onclick="exportTXT()">
+            <span>TXT Summary</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Audio Playback Header -->
+      <div class="player-card">
+        <div class="player-label">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+          <span>Audio Playback</span>
+        </div>
+        <div class="player-widget">
+          <audio id="resultsPlayer" controls></audio>
+        </div>
+      </div>
+
+      <!-- 1. Key Acoustic Measurements -->
+      <div class="section-title">
+        <span>Acoustic Measurements</span>
+        <span style="font-size: 11.5px; color: var(--text-dim); font-weight: 400;">Full temporal analysis</span>
+      </div>
+      <div class="metrics-grid" id="metricsGrid">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- 2. Interactive Spectrogram & Waveform Panel -->
+      <div class="interactive-panel">
+        <div class="stft-toolbar">
+          <div class="toolbar-group">
+            <!-- FFT Size -->
+            <div class="control-item">
+              <label for="stftFftSize">FFT Size:</label>
+              <select id="stftFftSize">
+                <option value="256">256 (temporal)</option>
+                <option value="512" selected>512 (balanced)</option>
+                <option value="1024">1024 (spectral)</option>
+                <option value="2048">2048 (narrowband)</option>
+              </select>
+            </div>
+
+            <!-- Hop Overlap -->
+            <div class="control-item">
+              <label for="stftOverlap">Overlap:</label>
+              <select id="stftOverlap">
+                <option value="0.50">50%</option>
+                <option value="0.75" selected>75%</option>
+                <option value="0.875">87.5%</option>
+              </select>
+            </div>
+
+            <!-- Window Function -->
+            <div class="control-item">
+              <label for="stftWindowType">Window:</label>
+              <select id="stftWindowType">
+                <option value="hann" selected>Hann</option>
+                <option value="hamming">Hamming</option>
+                <option value="blackman">Blackman</option>
+              </select>
+            </div>
+
+            <button class="btn-apply-stft" onclick="applySTFTParameters()">Apply Parameters</button>
+          </div>
+
+          <!-- Time Range Zooming & Inspection -->
+          <div class="toolbar-group">
+            <div class="control-item">
+              <label>Time Range (s):</label>
+              <input type="number" id="zoomTStart" placeholder="0.0" step="0.1" min="0"/>
+              <span>to</span>
+              <input type="number" id="zoomTEnd" placeholder="Max" step="0.1" min="0"/>
+            </div>
+            <button class="btn-apply-stft" style="background:#0284c7;" onclick="applyZoomTimeRange()">Zoom</button>
+            <button class="btn-reset-zoom" onclick="resetZoom()">Full View</button>
+          </div>
+        </div>
+
+        <!-- Live Cursor Readout -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--blue-900);">Waveform & Spectrogram</span>
+          <div class="inspector-badge" id="inspectorBadge">
+            <span>Hover on spectrogram to inspect frequency & time</span>
+          </div>
+        </div>
+
+        <!-- Waveform Plot -->
+        <div class="plot-container">
+          <img id="waveformImg" src="" alt="Waveform plot" onclick="seekAudioFromPlot(event)"/>
+        </div>
+
+        <!-- Spectrogram Plot with Hover Listener -->
+        <div class="plot-container">
+          <img id="spectrogramImg" src="" alt="Spectrogram plot"
+               onmousemove="handleSpectrogramHover(event)"
+               onmouseleave="handleSpectrogramLeave()"
+               onclick="seekAudioFromPlot(event)"/>
+        </div>
+      </div>
+
+      <!-- 3. Vocalization Event Detection -->
+      <div class="events-panel">
+        <div class="section-title">
+          <span>Vocalization Event Detection</span>
+          <span style="font-size: 11.5px; color: var(--text-dim); font-weight: 400;">Signal-based adaptive energy envelope</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Detected bursts of acoustic energy exceeding ambient noise thresholds. Click "Inspect" to zoom into the specific event window.
+        </p>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Event #</th>
+                <th>Start (s)</th>
+                <th>End (s)</th>
+                <th>Duration (ms)</th>
+                <th>Peak Amp</th>
+                <th>SNR (dB)</th>
+                <th>Inspect</th>
+              </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4. Coda Analysis (Sperm Whale Click-Sequence Exploration) -->
+      <div class="coda-panel">
+        <div class="section-title">
+          <span>Coda Analysis — Candidate Click Sequences</span>
+          <span style="font-size: 11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:2px 8px; border-radius:4px; font-weight:500;">
+            Candidate Sequences (Unverified)
+          </span>
+        </div>
+
+        <div class="coda-summary-bar">
+          <div class="coda-stat-pill">
+            <span>Detected Clicks</span>
+            <strong id="codaTotalClicks">—</strong>
+          </div>
+          <div class="coda-stat-pill">
+            <span>Candidate Sequences</span>
+            <strong id="codaTotalSequences">—</strong>
+          </div>
+          <div class="coda-stat-pill">
+            <span>Mean Inter-Click Interval (ICI)</span>
+            <strong id="codaMeanIci">—</strong>
+          </div>
+        </div>
+
+        <!-- Visual Click Timeline -->
+        <div class="timeline-wrapper">
+          <div class="timeline-label">
+            <span>Click Distribution Timeline</span>
+            <span id="timelineDurationLabel">0.0s — 0.0s</span>
+          </div>
+          <div class="timeline-bar" id="timelineBar"></div>
+        </div>
+
+        <!-- Candidate Sequences Table -->
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Sequence ID</th>
+                <th>Clicks</th>
+                <th>Start Time (s)</th>
+                <th>End Time (s)</th>
+                <th>Duration (s)</th>
+                <th>Mean ICI (ms)</th>
+                <th>Inspect</th>
+              </tr>
+            </thead>
+            <tbody id="codaTableBody">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 5. Scientific Accuracy & Calibration Disclaimers -->
+      <div class="disclaimer-card">
+        <h4>Scientific Calibration & Bioacoustic Accuracy Notice</h4>
+        <p>
+          • <strong>Digital Full Scale (dBFS):</strong> Measurements in this toolkit represent relative digital audio levels (0 dBFS = digital clipping ceiling). They reflect uncalibrated digital audio. Conversion to physical underwater sound pressure levels (dB re 1 µPa) requires specific hydrophone voltage sensitivity curves (dBV/µPa) and pre-amplifier gain calibration.<br/>
+          • <strong>Physical Signal Analysis:</strong> Extracted metrics, frequency distributions, and candidate click sequences quantify physical wave mechanics. They do not decode whale communicative syntax, semantic language meaning, or assert species classification without validated acoustic reference models and biological ground truth.<br/>
+          • <strong>Candidate Coda Sequences:</strong> Sequences are identified using signal impulse clustering. They represent candidate pulse sequences and must be cross-verified against field annotations before behavioral classification.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- VIEW 2: RECORDING COMPARISON                            -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <div id="view-compare" class="view-panel">
+    <div class="hero">
+      <div class="hero-badge">Comparative Bioacoustics</div>
+      <h2>Compare Two Vocalization Recordings</h2>
+      <p>
+        Upload two recordings to evaluate differences in temporal duration,
+        spectral centroids, dominant frequencies, and RMS levels.
+      </p>
+    </div>
+
+    <!-- Upload Selection for Recording A and Recording B -->
+    <div class="compare-grid">
+      <!-- Recording A -->
+      <div class="compare-side">
+        <h3>
+          <span>Recording A</span>
+          <button class="btn-sample-link" style="padding:2px 6px;" onclick="setCompareSample('a')">Use Sample Audio</button>
+        </h3>
+        <div class="dropzone" id="dropzoneA" onclick="triggerCompareInput('a')" style="padding: 24px 14px;">
+          <div class="dropzone-icon" style="width:38px; height:38px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          </div>
+          <div style="font-size:12.5px; font-weight:600; color:var(--blue-900);" id="nameLabelA">Select File A</div>
+          <input type="file" id="fileInputA" class="file-input" accept=".wav,.ogg,.mp3,.flac" onchange="handleCompareFile(event, 'a')"/>
+        </div>
+      </div>
+
+      <!-- Recording B -->
+      <div class="compare-side">
+        <h3>
+          <span>Recording B</span>
+          <button class="btn-sample-link" style="padding:2px 6px;" onclick="setCompareSample('b')">Use Sample Audio</button>
+        </h3>
+        <div class="dropzone" id="dropzoneB" onclick="triggerCompareInput('b')" style="padding: 24px 14px;">
+          <div class="dropzone-icon" style="width:38px; height:38px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          </div>
+          <div style="font-size:12.5px; font-weight:600; color:var(--blue-900);" id="nameLabelB">Select File B</div>
+          <input type="file" id="fileInputB" class="file-input" accept=".wav,.ogg,.mp3,.flac" onchange="handleCompareFile(event, 'b')"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Run Comparison Button -->
+    <div class="cta-area" style="margin-bottom: 28px;">
+      <button class="btn-primary" id="btnCompare" onclick="executeComparison()">
+        <span class="spinner" id="compareSpinner"></span>
+        <span id="compareBtnText">Run Comparative Analysis</span>
+      </button>
+    </div>
+
+    <!-- Comparative Results Display -->
+    <div id="compareResultsArea" style="display:none;">
+      <div class="section-title">
+        <span>Acoustic Comparison & Numerical Deltas</span>
+      </div>
+
+      <!-- Delta Summary Table -->
+      <table class="delta-table">
+        <thead>
+          <tr>
+            <th>Measurement</th>
+            <th>Recording A</th>
+            <th>Recording B</th>
+            <th>Difference (B − A)</th>
+          </tr>
+        </thead>
+        <tbody id="deltaTableBody">
+          <!-- Injected via JavaScript -->
+        </tbody>
+      </table>
+
+      <!-- Side-by-Side Plots -->
+      <div class="compare-grid">
+        <div class="compare-side">
+          <h4 style="font-size:13px; font-weight:600; margin-bottom:8px; color:var(--blue-900);" id="cmpTitleA">Recording A Plots</h4>
+          <div class="plot-container"><img id="cmpWaveA" src="" alt="Waveform A"/></div>
+          <div class="plot-container"><img id="cmpSpecA" src="" alt="Spectrogram A"/></div>
+        </div>
+        <div class="compare-side">
+          <h4 style="font-size:13px; font-weight:600; margin-bottom:8px; color:var(--blue-900);" id="cmpTitleB">Recording B Plots</h4>
+          <div class="plot-container"><img id="cmpWaveB" src="" alt="Waveform B"/></div>
+          <div class="plot-container"><img id="cmpSpecB" src="" alt="Spectrogram B"/></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div>Whale Acoustic Lab · Computational Analysis of Whale Vocalizations</div>
+    <div>Marine Bioacoustics Research Toolkit</div>
+  </footer>
+
+</div>
+
+<script>
+  // State
+  let activeNavMode = 'single';
+  let selectedFile = null;
+  let usePreset = false;
+  let currentData = null;
+
+  // Comparison State
+  let fileCompA = null;
+  let fileCompB = null;
+  let usePresetA = false;
+  let usePresetB = false;
+
+  const ICONS = {
+    duration: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+    sample_rate: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path><circle cx="12" cy="12" r="2"></circle><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"></path></svg>`,
+    samples: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line></svg>`,
+    rms_dbfs: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>`,
+    rms_amp: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+    peak_amp: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+    centroid: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
+    dominant: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path></svg>`
+  };
+
+  const METRIC_DEFS = [
+    { key: "duration_s", label: "Duration", unit: "s", icon: ICONS.duration },
+    { key: "sample_rate", label: "Sample Rate", unit: "Hz", icon: ICONS.sample_rate },
+    { key: "num_samples", label: "Total Samples", unit: "", icon: ICONS.samples },
+    { key: "rms_dbfs", label: "RMS Level", unit: "dBFS", icon: ICONS.rms_dbfs },
+    { key: "rms_amplitude", label: "RMS Amp", unit: "", icon: ICONS.rms_amp },
+    { key: "peak_amplitude", label: "Peak Amp", unit: "", icon: ICONS.peak_amp },
+    { key: "spectral_centroid", label: "Spectral Centroid", unit: "Hz", icon: ICONS.centroid },
+    { key: "dominant_freq", label: "Dominant Freq", unit: "Hz", icon: ICONS.dominant }
+  ];
+
+  // Mode switching
+  function switchNavMode(mode) {
+    activeNavMode = mode;
+    const btnS = document.getElementById('btnModeSingle');
+    const btnC = document.getElementById('btnModeCompare');
+    const viewS = document.getElementById('view-single');
+    const viewC = document.getElementById('view-compare');
+
+    if (mode === 'single') {
+      btnS.classList.add('active');
+      btnC.classList.remove('active');
+      viewS.classList.add('active');
+      viewC.classList.remove('active');
+    } else {
+      btnS.classList.remove('active');
+      btnC.classList.add('active');
+      viewS.classList.remove('active');
+      viewC.classList.add('active');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Upload handlers
+  function triggerFileInput() {
+    document.getElementById('fileInput').click();
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) setFile(file);
+  }
+
+  function setFile(file) {
+    selectedFile = file;
+    usePreset = false;
+
+    document.getElementById('selectedFileName').textContent = file.name;
+    const sizeKB = (file.size / 1024).toFixed(1);
+    document.getElementById('selectedFileSize').textContent = `${sizeKB} KB`;
+    document.getElementById('selectedBox').style.display = 'block';
+
+    const player = document.getElementById('audioPreview');
+    player.src = URL.createObjectURL(file);
+    hideError();
+  }
+
+  function loadSampleAudio() {
+    selectedFile = null;
+    usePreset = true;
+
+    document.getElementById('selectedFileName').textContent = "sperm_whale_clicks.ogg (Sperm Whale Echolocation Sample)";
+    document.getElementById('selectedFileSize').textContent = "1.4 MB";
+    document.getElementById('selectedBox').style.display = 'block';
+
+    const player = document.getElementById('audioPreview');
+    player.src = "/api/audio/preset";
+    hideError();
+  }
+
+  // Drag & drop
+  const dropzone = document.getElementById('dropzone');
+  ['dragenter', 'dragover'].forEach(n => {
+    dropzone.addEventListener(n, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(n => {
+    dropzone.addEventListener(n, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.remove('dragover');
+    });
+  });
+  dropzone.addEventListener('drop', (e) => {
+    const f = e.dataTransfer.files[0];
+    if (f) setFile(f);
+  });
+
+  function showError(msg) {
+    const b = document.getElementById('errorBanner');
+    b.textContent = msg;
+    b.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('errorBanner').style.display = 'none';
+  }
+
+  function backToUpload() {
+    document.getElementById('subview-upload').classList.add('active');
+    document.getElementById('subview-results').classList.remove('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Run full analysis
+  async function runAnalysis() {
+    hideError();
+    const preview = document.getElementById('audioPreview');
+    if (preview) preview.pause();
+
+    if (!selectedFile && !usePreset) {
+      showError("Please upload an audio file or select the sample recording.");
+      return;
+    }
+
+    const btn = document.getElementById('btnRun');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+
+    btn.classList.add('loading');
+    spinner.style.display = 'inline-block';
+    btnText.textContent = 'Computing Bioacoustic Features...';
+
+    try {
+      let res;
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('audio_file', selectedFile);
+        formData.append('window_size', document.getElementById('stftFftSize').value);
+        formData.append('overlap', document.getElementById('stftOverlap').value);
+        formData.append('window_type', document.getElementById('stftWindowType').value);
+        res = await fetch('/api/analyse', { method: 'POST', body: formData });
+      } else {
+        res = await fetch('/api/analyse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sample: 'preset',
+            window_size: parseInt(document.getElementById('stftFftSize').value),
+            overlap: parseFloat(document.getElementById('stftOverlap').value),
+            window_type: document.getElementById('stftWindowType').value
+          })
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Analysis failed');
+
+      currentData = data;
+      renderAnalysisResults(data);
+
+      document.getElementById('subview-upload').classList.remove('active');
+      document.getElementById('subview-results').classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      showError(err.message || 'An error occurred during analysis.');
+    } finally {
+      btn.classList.remove('loading');
+      spinner.style.display = 'none';
+      btnText.textContent = 'Run Acoustic Analysis';
+    }
+  }
+
+  // Populate Analysis Results
+  function renderAnalysisResults(data) {
+    document.getElementById('reportFileName').textContent = data.filename;
+    document.getElementById('reportDate').textContent = data.analysed_at;
+
+    // Player
+    const player = document.getElementById('resultsPlayer');
+    player.src = data.audio_url;
+
+    // Metrics grid
+    const grid = document.getElementById('metricsGrid');
+    grid.innerHTML = '';
+    METRIC_DEFS.forEach(m => {
+      let val = data[m.key];
+      if (['sample_rate', 'num_samples', 'spectral_centroid', 'dominant_freq'].includes(m.key)) {
+        val = Number(val).toLocaleString();
+      } else if (['duration_s', 'rms_dbfs'].includes(m.key)) {
+        val = Number(val).toFixed(2);
+      } else if (['peak_amplitude', 'rms_amplitude'].includes(m.key)) {
+        val = Number(val).toFixed(4);
+      }
+
+      const card = document.createElement('div');
+      card.className = 'metric-card';
+      card.innerHTML = `
+        <div class="metric-top">
+          <span class="metric-title">${m.label}</span>
+          <span class="metric-icon-wrap">${m.icon}</span>
+        </div>
+        <div class="metric-value-row">
+          <span class="metric-num">${val}</span>
+          <span class="metric-unit">${m.unit}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Plots
+    document.getElementById('waveformImg').src = 'data:image/png;base64,' + data.waveform_png;
+    document.getElementById('spectrogramImg').src = 'data:image/png;base64,' + data.spectrogram_png;
+
+    // Reset zoom inputs
+    document.getElementById('zoomTStart').value = '';
+    document.getElementById('zoomTEnd').value = '';
+
+    // Render Events Table
+    renderEventsTable(data.events || []);
+
+    // Render Coda Analysis
+    renderCodaSection(data.coda_analysis || {}, data.duration_s);
+  }
+
+  // Render Detected Events Table
+  function renderEventsTable(events) {
+    const tbody = document.getElementById('eventsTableBody');
+    tbody.innerHTML = '';
+
+    if (!events || events.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-dim);">No significant vocalization bursts detected above ambient noise floor.</td></tr>`;
+      return;
+    }
+
+    events.forEach(ev => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>#${ev.id}</td>
+        <td>${ev.start_s.toFixed(3)}s</td>
+        <td>${ev.end_s.toFixed(3)}s</td>
+        <td>${ev.duration_ms.toFixed(1)} ms</td>
+        <td>${ev.peak_amplitude.toFixed(4)}</td>
+        <td>${ev.snr_db ? ev.snr_db.toFixed(1) : '—'}</td>
+        <td>
+          <button class="btn-inspect-row" onclick="inspectEvent(${ev.start_s}, ${ev.end_s})">Inspect</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Render Coda Section
+  function renderCodaSection(coda, totalDuration) {
+    document.getElementById('codaTotalClicks').textContent = (coda.total_clicks || 0).toLocaleString();
+    document.getElementById('codaTotalSequences').textContent = (coda.total_sequences || 0).toLocaleString();
+    document.getElementById('codaMeanIci').textContent = coda.mean_ici_ms ? `${coda.mean_ici_ms.toFixed(1)} ms` : '—';
+    document.getElementById('timelineDurationLabel').textContent = `0.0s — ${totalDuration}s`;
+
+    // Click timeline bar
+    const bar = document.getElementById('timelineBar');
+    bar.innerHTML = '';
+    const clicks = coda.click_timeline || [];
+    clicks.forEach(t => {
+      const pct = (t / totalDuration) * 100;
+      if (pct >= 0 && pct <= 100) {
+        const tick = document.createElement('div');
+        tick.className = 'click-tick';
+        tick.style.left = `${pct}%`;
+        tick.title = `Click at ${t.toFixed(3)}s`;
+        tick.onclick = () => {
+          const p = document.getElementById('resultsPlayer');
+          p.currentTime = t;
+          p.play();
+        };
+        bar.appendChild(tick);
+      }
+    });
+
+    // Candidate Sequences Table
+    const tbody = document.getElementById('codaTableBody');
+    tbody.innerHTML = '';
+    const seqs = coda.candidate_sequences || [];
+    if (seqs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-dim);">No repetitive click sequences detected.</td></tr>`;
+      return;
+    }
+
+    seqs.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>Seq ${s.sequence_id}</td>
+        <td>${s.click_count}</td>
+        <td>${s.start_s.toFixed(3)}s</td>
+        <td>${s.end_s.toFixed(3)}s</td>
+        <td>${s.duration_s.toFixed(3)}s</td>
+        <td>${s.avg_ici_ms.toFixed(1)} ms</td>
+        <td>
+          <button class="btn-inspect-row" onclick="inspectEvent(${s.start_s}, ${s.end_s})">Zoom Seq</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Interactive STFT recompute
+  async function applySTFTParameters() {
+    if (!currentData) return;
+    const wSize = parseInt(document.getElementById('stftFftSize').value);
+    const overlap = parseFloat(document.getElementById('stftOverlap').value);
+    const wType = document.getElementById('stftWindowType').value;
+    const tStart = document.getElementById('zoomTStart').value ? parseFloat(document.getElementById('zoomTStart').value) : null;
+    const tEnd = document.getElementById('zoomTEnd').value ? parseFloat(document.getElementById('zoomTEnd').value) : null;
+
+    try {
+      const res = await fetch('/api/spectrogram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: currentData.internal_name || currentData.filename,
+          window_size: wSize,
+          overlap: overlap,
+          window_type: wType,
+          t_start: tStart,
+          t_end: tEnd
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error);
+
+      document.getElementById('waveformImg').src = 'data:image/png;base64,' + data.waveform_png;
+      document.getElementById('spectrogramImg').src = 'data:image/png;base64,' + data.spectrogram_png;
+    } catch (e) {
+      alert("Could not recompute spectrogram: " + e.message);
+    }
+  }
+
+  // Time Zooming
+  function applyZoomTimeRange() {
+    applySTFTParameters();
+  }
+
+  function resetZoom() {
+    document.getElementById('zoomTStart').value = '';
+    document.getElementById('zoomTEnd').value = '';
+    applySTFTParameters();
+  }
+
+  function inspectEvent(tStart, tEnd) {
+    const pad = 0.15;
+    const s = Math.max(0, tStart - pad);
+    const e = tEnd + pad;
+    document.getElementById('zoomTStart').value = s.toFixed(2);
+    document.getElementById('zoomTEnd').value = e.toFixed(2);
+    applySTFTParameters();
+
+    const p = document.getElementById('resultsPlayer');
+    p.currentTime = tStart;
+    p.play();
+  }
+
+  // Spectrogram Cursor Hover Inspection
+  function handleSpectrogramHover(e) {
+    if (!currentData) return;
+    const rect = e.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const tStart = document.getElementById('zoomTStart').value ? parseFloat(document.getElementById('zoomTStart').value) : 0;
+    const tEnd = document.getElementById('zoomTEnd').value ? parseFloat(document.getElementById('zoomTEnd').value) : currentData.duration_s;
+    const spanT = tEnd - tStart;
+
+    // Normalizing coordinates (ignoring padding margin approx 9% on sides)
+    const normX = Math.max(0, Math.min(1, (x / rect.width - 0.08) / 0.84));
+    const normY = Math.max(0, Math.min(1, 1.0 - (y / rect.height - 0.12) / 0.76));
+
+    const curTime = tStart + normX * spanT;
+    const curFreq = normY * (currentData.sample_rate / 2);
+
+    const badge = document.getElementById('inspectorBadge');
+    badge.innerHTML = `<strong>Time:</strong> ${curTime.toFixed(2)}s &nbsp;|&nbsp; <strong>Freq:</strong> ${Math.round(curFreq).toLocaleString()} Hz`;
+  }
+
+  function handleSpectrogramLeave() {
+    document.getElementById('inspectorBadge').textContent = 'Hover on spectrogram to inspect frequency & time';
+  }
+
+  function seekAudioFromPlot(e) {
+    if (!currentData) return;
+    const rect = e.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const tStart = document.getElementById('zoomTStart').value ? parseFloat(document.getElementById('zoomTStart').value) : 0;
+    const tEnd = document.getElementById('zoomTEnd').value ? parseFloat(document.getElementById('zoomTEnd').value) : currentData.duration_s;
+    const spanT = tEnd - tStart;
+    const normX = Math.max(0, Math.min(1, (x / rect.width - 0.08) / 0.84));
+    const targetTime = tStart + normX * spanT;
+
+    const p = document.getElementById('resultsPlayer');
+    p.currentTime = targetTime;
+    p.play();
+  }
+
+  // Export handlers
+  function exportPDF() {
+    if (!currentData) return;
+    const target = currentData.internal_name || currentData.filename;
+    window.location.href = `/api/export-pdf?filename=${encodeURIComponent(target)}`;
+  }
+
+  function exportCSV() {
+    if (!currentData) return;
+    const target = currentData.internal_name || currentData.filename;
+    window.location.href = `/api/export-csv?filename=${encodeURIComponent(target)}`;
+  }
+
+  function exportTXT() {
+    if (!currentData || !currentData.summary_text) return;
+    const blob = new Blob([currentData.summary_text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `whale_acoustic_report_${currentData.filename.replace(/\.[^/.]+$/, "")}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // -------------------------------------------------------------
+  // COMPARISON HANDLERS
+  // -------------------------------------------------------------
+  function triggerCompareInput(side) {
+    document.getElementById(`fileInput${side.toUpperCase()}`).click();
+  }
+
+  function handleCompareFile(e, side) {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (side === 'a') {
+      fileCompA = f;
+      usePresetA = false;
+      document.getElementById('nameLabelA').textContent = f.name;
+    } else {
+      fileCompB = f;
+      usePresetB = false;
+      document.getElementById('nameLabelB').textContent = f.name;
+    }
+  }
+
+  function setCompareSample(side) {
+    if (side === 'a') {
+      fileCompA = null;
+      usePresetA = true;
+      document.getElementById('nameLabelA').textContent = "sperm_whale_clicks.ogg (Sample)";
+    } else {
+      fileCompB = null;
+      usePresetB = true;
+      document.getElementById('nameLabelB').textContent = "sperm_whale_clicks.ogg (Sample)";
+    }
+  }
+
+  async function executeComparison() {
+    const btn = document.getElementById('btnCompare');
+    const sp = document.getElementById('compareSpinner');
+    const txt = document.getElementById('compareBtnText');
+
+    btn.classList.add('loading');
+    sp.style.display = 'inline-block';
+    txt.textContent = 'Comparing Recordings...';
+
+    const formData = new FormData();
+    if (fileCompA) formData.append('audio_a', fileCompA);
+    else formData.append('target_a', 'preset');
+
+    if (fileCompB) formData.append('audio_b', fileCompB);
+    else formData.append('target_b', 'preset');
+
+    try {
+      const res = await fetch('/api/compare', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Comparison failed');
+
+      renderComparisonResults(data);
+    } catch (e) {
+      alert("Comparison Error: " + e.message);
+    } finally {
+      btn.classList.remove('loading');
+      sp.style.display = 'none';
+      txt.textContent = 'Run Comparative Analysis';
+    }
+  }
+
+  function renderComparisonResults(data) {
+    const area = document.getElementById('compareResultsArea');
+    area.style.display = 'block';
+
+    const recA = data.recording_a;
+    const recB = data.recording_b;
+    const cmp = data.comparison;
+
+    document.getElementById('cmpTitleA').textContent = `Recording A: ${recA.filename}`;
+    document.getElementById('cmpTitleB').textContent = `Recording B: ${recB.filename}`;
+
+    document.getElementById('cmpWaveA').src = 'data:image/png;base64,' + recA.waveform_png;
+    document.getElementById('cmpSpecA').src = 'data:image/png;base64,' + recA.spectrogram_png;
+    document.getElementById('cmpWaveB').src = 'data:image/png;base64,' + recB.waveform_png;
+    document.getElementById('cmpSpecB').src = 'data:image/png;base64,' + recB.spectrogram_png;
+
+    const tbody = document.getElementById('deltaTableBody');
+    tbody.innerHTML = '';
+
+    const rows = [
+      { label: "Duration", valA: `${recA.duration_s} s`, valB: `${recB.duration_s} s`, delta: `${cmp.delta_duration_s > 0 ? '+' : ''}${cmp.delta_duration_s} s`, num: cmp.delta_duration_s },
+      { label: "RMS Level", valA: `${recA.rms_dbfs} dBFS`, valB: `${recB.rms_dbfs} dBFS`, delta: `${cmp.delta_rms_dbfs > 0 ? '+' : ''}${cmp.delta_rms_dbfs} dBFS`, num: cmp.delta_rms_dbfs },
+      { label: "Spectral Centroid", valA: `${recA.spectral_centroid.toLocaleString()} Hz`, valB: `${recB.spectral_centroid.toLocaleString()} Hz`, delta: `${cmp.delta_spectral_centroid_hz > 0 ? '+' : ''}${cmp.delta_spectral_centroid_hz} Hz`, num: cmp.delta_spectral_centroid_hz },
+      { label: "Dominant Frequency", valA: `${recA.dominant_freq.toLocaleString()} Hz`, valB: `${recB.dominant_freq.toLocaleString()} Hz`, delta: `${cmp.delta_dominant_freq_hz > 0 ? '+' : ''}${cmp.delta_dominant_freq_hz} Hz`, num: cmp.delta_dominant_freq_hz }
+    ];
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      const cls = r.num > 0 ? 'pos' : (r.num < 0 ? 'neg' : '');
+      tr.innerHTML = `
+        <td><strong>${r.label}</strong></td>
+        <td>${r.valA}</td>
+        <td>${r.valB}</td>
+        <td class="delta-val ${cls}">${r.delta}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+</script>
+
+</body>
+</html>
