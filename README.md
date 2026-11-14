@@ -1,140 +1,191 @@
 # Whale Acoustic Lab
 ### Computational Analysis of Whale Vocalizations
 
-A professional, lightweight bioacoustic research toolkit for analyzing marine mammal vocalizations using digital signal processing (DSP) in Python and an interactive web interface.
-
----
+A Python-based bioacoustic signal-processing toolkit for exploring and analysing marine mammal vocalizations using digital signal processing (DSP) and an interactive web interface.
 
 ## Overview
 
-**Whale Acoustic Lab** processes underwater hydrophone recordings to compute time-domain waveforms, Short-Time Fourier Transform (STFT) spectrograms, acoustic loudness metrics, discrete vocalization events, and sperm whale candidate click sequences (codas).
+Whale Acoustic Lab is an experimental platform designed to process underwater audio recordings and extract acoustic features for preliminary analysis.
 
-Unlike heavy, desktop-only workstations (such as Raven Pro or PAMGuard), this application runs natively in any desktop or mobile browser with zero client installation, providing 1-click automated extraction and publication-quality research report exports (PDF and CSV).
+The application provides waveform visualization, Short-Time Fourier Transform (STFT) spectrograms, signal-level measurements, vocalization event detection, and candidate sperm whale click-sequence analysis.
 
----
+It combines Python-based audio processing with a Flask web interface, allowing users to upload recordings, inspect visualizations, compare audio signals, and export analysis reports.
+
+**Note:** This is an exploratory signal-processing project. Its outputs are not validated biological classifications or interpretations of whale communication.
 
 ## Core Capabilities
 
-1. **Audio Ingestion & Normalization**:
-   - Supports `WAV`, `OGG`, `MP3`, `FLAC`, and `AIFF`.
-   - Mixes multi-channel hydrophone data to mono.
-   - Normalizes amplitude to a floating-point range of `[-1.0, 1.0]`.
+### 1. Audio Ingestion and Processing
+- Supports WAV, OGG, MP3, FLAC, and AIFF formats.
+- Converts multichannel recordings to mono for analysis.
+- Converts audio samples to floating-point representation and normalizes amplitude where applicable.
 
-2. **Interactive Spectrogram & STFT Customization**:
-   - Configurable FFT window sizes: `256`, `512` (default), `1024`, and `2048` samples.
-   - Configurable overlap: `50%`, `75%` (default), and `87.5%`.
-   - Windowing functions: `Hann`, `Hamming`, and `Blackman`.
-   - Time-window zooming (`t_start` to `t_end`).
-   - Real-time cursor inspection for instantaneous time ($s$) and frequency ($\text{Hz}$) readouts.
+### 2. Waveform and Spectrogram Visualization
+- Generates time-domain waveform plots.
+- Produces STFT-based spectrograms.
+- Configurable FFT sizes: 256, 512, 1024, and 2048 samples.
+- Configurable overlap: 50%, 75%, and 87.5%.
+- Window functions: Hann, Hamming, and Blackman.
+- Supports time-window selection and cursor-based inspection of time and frequency.
 
-3. **Vocalization Event Detection**:
-   - Signal-based adaptive energy envelope thresholding.
-   - Extracts event start/end times, temporal duration (ms), peak amplitude, and signal-to-noise ratio (SNR).
-   - 1-click inspection: instantly zooms the spectrogram and cues audio playback to any detected event.
+### 3. Vocalization Event Detection
+- Uses an adaptive energy-envelope thresholding approach.
+- Extracts candidate event start and end times.
+- Calculates event duration and peak amplitude.
+- Provides signal-to-noise ratio estimates.
+- Allows users to inspect detected events through the interface.
 
-4. **Sperm Whale Coda Analysis**:
-   - Impulse peak detection to identify individual echolocation clicks.
-   - Calculates Inter-Click Intervals (ICIs in ms), mean interval, and click counts.
-   - Visual click timeline mapping pulses across the recording.
-   - Clearly labeled as candidate sequences requiring behavioral field validation.
+### 4. Candidate Sperm Whale Click-Sequence Analysis
+- Detects candidate impulse peaks in audio recordings.
+- Calculates inter-click intervals (ICIs).
+- Reports click counts and mean inter-click intervals.
+- Provides a visual timeline of detected candidate clicks.
 
-5. **Recording Comparison**:
-   - Side-by-side comparative analysis of two audio recordings.
-   - Comparative waveform and spectrogram displays.
-   - Automated delta metrics table ($\Delta\text{ Duration}$, $\Delta\text{ RMS dBFS}$, $\Delta\text{ Centroid}$, $\Delta\text{ Dominant Frequency}$).
+These outputs represent signal-based detections only. Confirming sperm whale codas or their behavioural significance requires validated recordings, biological annotations, and expert interpretation.
 
-6. **Research Reports**:
-   - **Vector PDF Export (`/api/export-pdf`)**: Multi-page publication-quality document containing recording metadata, measurement tables, STFT figures, event tables, and calibration disclaimers.
-   - **CSV Export (`/api/export-csv`)**: Machine-readable data for external analysis in R, Python, or Excel.
-   - **TXT Summary (`.txt`)**: Quick terminal/text report.
+### 5. Recording Comparison
+- Compares two audio recordings.
+- Displays comparative waveform and spectrogram visualizations.
+- Reports differences in selected measurements, including duration, RMS level (dBFS), spectral centroid, and dominant frequency.
 
-7. **Scientific Calibration & Accuracy**:
-   - Explicitly distinguishes relative digital levels ($\text{dBFS}$) from calibrated underwater sound pressure levels ($\text{dB re } 1\,\mu\text{Pa}$).
-   - Disclaims semantic/linguistic interpretation, restricting claims to physical wave acoustics.
+### 6. Research Report Exports
+- PDF reports containing recording information, measurements, visualizations, and analysis results.
+- CSV exports for further analysis using Python, R, or spreadsheet software.
+- Text-based summaries for quick reference.
 
----
+### 7. Scientific Calibration Considerations
+- Reports digital signal levels in dBFS rather than calibrated underwater sound pressure levels.
+- Distinguishes signal measurements from biological interpretation.
+- Does not claim to decode whale language or independently identify species.
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| Programming language | Python |
+| Web framework | Flask |
+| Numerical processing | NumPy |
+| Signal processing | SciPy |
+| Visualization | Matplotlib |
+| Audio handling | SoundFile |
+| Testing | Pytest |
+| Frontend | HTML, CSS, JavaScript |
 
 ## Quick Start
 
-### 1. Install Dependencies
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/riyatessamajo-git/whale-acoustic-lab.git
+cd whale-acoustic-lab
+```
+
+### 2. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Start the Web Server
+### 3. Start the Application
+
 ```bash
 python app.py
 ```
-Open **`http://localhost:5000`** in any web browser (accessible on phones and tablets on the local network).
 
-### 3. (Optional) Run via Command-Line
+Open the following address in your browser:
+
+```text
+http://localhost:5000
+```
+
+### 4. Run Command-Line Analysis
+
 ```bash
-# Analyze default sample and save outputs
 python whale_analysis.py
+```
 
-# Analyze your own recording
+To analyse a specific recording:
+
+```bash
 python whale_analysis.py path/to/recording.wav
 ```
 
-### 4. Run Automated Tests
+### 5. Run Automated Tests
+
 ```bash
 pytest
 ```
-*(All 34 unit tests cover audio loading, math accuracy, event detection, coda analysis, comparative metrics, and plot generation).*
 
----
+The project includes automated tests for audio loading, measurement calculations, event detection, click analysis, comparative metrics, and plotting.
 
 ## Project Structure
 
-```
+```text
 acoustic/
-├── app.py                  # Flask backend server & REST API endpoints
-├── audio_io.py             # Audio loader, mono mixdown, [-1, 1] normalizer
-├── measurements.py         # Acoustic metrics, event detector, coda analyzer
-├── plotting.py             # Waveform and configurable STFT spectrogram renderer
-├── report_generator.py     # PDF & CSV scientific report generator
-├── download_sample.py      # Sample audio downloader (Wikimedia / NOAA)
-├── whale_analysis.py       # Standalone CLI analysis script
-├── requirements.txt        # Minimal Python dependencies
-├── .gitignore              # Version control ignore rules
+├── app.py
+├── audio_io.py
+├── measurements.py
+├── plotting.py
+├── report_generator.py
+├── download_sample.py
+├── whale_analysis.py
+├── requirements.txt
+├── METHODOLOGY.md
+├── README.md
 ├── static/
-│   └── index.html          # Web application UI (white-and-blue theme)
+│   └── index.html
 ├── data/
-│   └── sperm_whale_clicks.ogg  # Built-in reference recording (71.2s, 44.1 kHz)
-├── uploads/                # Temporary directory for user uploads (.gitkeep)
-├── outputs/                # Directory for generated CLI outputs (.gitkeep)
-└── tests/                  # Automated test suite (34 tests)
+├── uploads/
+├── outputs/
+└── tests/
+    ├── __init__.py
     ├── test_audio_io.py
     ├── test_measurements.py
     ├── test_new_features.py
     └── test_plotting.py
 ```
 
----
-
 ## Acoustic Measurements Explained
 
-| Measurement | Formula / Concept | Scientific Interpretation |
+| Measurement | Formula / Concept | Interpretation |
 |---|---|---|
-| **Duration** | $N / f_s$ | Total length of the audio recording in seconds. |
-| **Sample Rate ($f_s$)** | Samples per second ($\text{Hz}$) | Determines Nyquist bandwidth ($f_{max} = f_s / 2$). E.g., 44.1 kHz captures up to 22.05 kHz. |
-| **Peak Amplitude** | $\max(\|x[n]\|)$ | Loudest single instantaneous pressure sample ($1.0$ in normalized audio). |
-| **RMS Amplitude** | $\sqrt{\frac{1}{N} \sum x[n]^2}$ | Quadratic mean representing effective continuous acoustic power. |
-| **RMS Level (dBFS)** | $20 \log_{10}(\text{RMS})$ | Logarithmic loudness relative to digital clipping ($0\text{ dBFS}$). |
-| **Spectral Centroid** | $\frac{\sum f \cdot \|X[f]\|}{\sum \|X[f]\|}$ | Center of spectral mass ("acoustic brightness"). Click energy is concentrated above 8–10 kHz. |
-| **Dominant Frequency** | $\operatorname{argmax}(\|X[f]\|)$ | Frequency bin with peak energy. |
-| **Inter-Click Interval (ICI)** | $t_{i} - t_{i-1}$ | Time gap between consecutive sperm whale clicks (used in biosonar echolocation and coda identification). |
-
----
+| Duration | \(N/f_s\) | Total recording duration in seconds. |
+| Sample Rate | Samples per second (Hz) | Determines the Nyquist frequency, \(f_s/2\). |
+| Peak Amplitude | \(\max |x[n]|\) | Maximum absolute digital sample amplitude. |
+| RMS Amplitude | \(\sqrt{\frac{1}{N}\sum x[n]^2}\) | Effective amplitude measure of the digital signal. |
+| RMS Level | \(20\log_{10}(\mathrm{RMS})\) | Digital signal level relative to full scale, expressed in dBFS. |
+| Spectral Centroid | \(\frac{\sum f_k|X[k]|}{\sum |X[k]|}\) | Magnitude-weighted centre of the frequency spectrum. |
+| Dominant Frequency | Frequency at maximum spectral magnitude | Frequency bin with the highest spectral magnitude. |
+| Inter-Click Interval | \(t_i-t_{i-1}\) | Time difference between consecutive detected candidate clicks. |
 
 ## Scientific Calibration Notice
 
-* **Relative Digital Scale ($\text{dBFS}$)**: All measurements are calculated on digital audio data. Converting digital dBFS to absolute underwater sound pressure levels ($\text{dB re } 1\,\mu\text{Pa}$) requires physical hydrophone voltage sensitivity ($\text{dBV}/\mu\text{Pa}$) and pre-amplifier gain curves.
-* **Physical Signal Mechanics**: Signal metrics, event boundaries, and candidate click sequences quantify physical wave acoustics. They do **not** claim to decode semantic whale language or assert species identity without ground-truth biological annotations and validated reference models.
+### Digital Levels and Underwater Sound Pressure
 
----
+The application calculates measurements from digital audio samples. RMS levels are reported in dBFS, which represents signal amplitude relative to digital full scale.
 
-## License & Attribution
+These values cannot be directly interpreted as absolute underwater sound pressure levels in dB re 1 µPa.
 
-* **Default Recording**: *Physeter macrocephalus* (Sperm Whale) Normal Echolocation Clicks recorded via hydrophone. Source: Wikimedia Commons / NOAA (Public Domain).
-* **Technology**: Python 3.12, NumPy, SciPy, Matplotlib, SoundFile, Flask.
+Conversion requires appropriate calibration information, including hydrophone sensitivity, recording-system gain, and relevant frequency-response characteristics.
+
+### Interpretation Limitations
+
+Signal measurements, detected events, and candidate click sequences describe properties of the recorded audio.
+
+They do not independently establish:
+- The biological identity of a vocalization.
+- The behavioural context of a detected sound.
+- The meaning or semantic content of whale vocalizations.
+- The classification of a detected sequence as a confirmed sperm whale coda.
+
+Such interpretations require suitable reference data, biological annotations, and expert validation.
+
+## License and Attribution
+
+This project uses open-source Python libraries under their respective licences.
+
+Any sample audio recordings used with the project should retain their original source attribution and applicable licence information. Check the specific recording's licence before redistribution.
+
+## Disclaimer
+
+Whale Acoustic Lab is an educational and exploratory bioacoustic signal-processing project. It is intended to demonstrate audio processing, acoustic feature extraction, visualization, and preliminary signal analysis. Its outputs should not be treated as validated scientific findings without further verification.
